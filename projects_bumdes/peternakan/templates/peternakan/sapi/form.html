@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">{% if form.instance.pk %}Edit Data Sapi{% else %}Tambah Sapi Baru{% endif %}</h2>
+<div class="card p-4 col-md-10">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Baris 1: ID & Nama -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">ID Sapi</label>
+                {{ form.id_sapi }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Nama Sapi</label>
+                {{ form.nama_sapi }}
+            </div>
+
+            <!-- Baris 2: Rumpun & Jenis Kelamin -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Rumpun / Breed</label>
+                {{ form.rumpun }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Jenis Kelamin</label>
+                {{ form.jenis_kelamin }}
+            </div>
+
+            <!-- Baris 3: Tanggal Lahir & Status -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Tanggal Lahir</label>
+                {{ form.tanggal_lahir }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Status</label>
+                {{ form.status }}
+            </div>
+
+            <!-- Baris 4: Berat & Tinggi -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Berat Badan (Kg)</label>
+                {{ form.berat_badan }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Tinggi Gumba/Pundak (Cm)</label>
+                {{ form.tinggi_sapi }}
+                <small class="text-muted d-block">Opsional, diisi dengan angka cm.</small>
+            </div>
+
+            <!-- Baris 5: Foto -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Foto Sapi</label>
+                {{ form.foto }}
+            </div>
+
+            <!-- Baris 6: Keterangan -->
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold small">Keterangan</label>
+                {{ form.keterangan }}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Simpan</button>
+        <a href="{% url 'peternakan:sapi_list' %}" class="btn btn-secondary">Batal</a>
+    </form>
+</div>
+{% endblock %}

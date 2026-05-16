@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BUMDES JAYA MAKMUR{% endblock %}</title>
+    
+    <!-- CSS Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- CSS Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS untuk Layout Sidebar -->
+    <style>
+        body { 
+            display: flex; 
+            min-height: 100vh; 
+            margin: 0; 
+            background-color: #f4f6f9;
+        }
+        
+        /* Styling Sidebar */
+        .sidebar { 
+            width: 260px; 
+            background: #343a40; 
+            color: white; 
+            padding-top: 20px; 
+            flex-shrink: 0; 
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+        }
+        .sidebar .brand { 
+            font-size: 1.2rem; 
+            padding: 0 20px 20px 20px; 
+            border-bottom: 1px solid #495057; 
+            margin-bottom: 10px;
+        }
+        .sidebar a { 
+            color: #adb5bd; 
+            text-decoration: none; 
+            display: flex; 
+            align-items: center; 
+            padding: 10px 20px; 
+            font-size: 14px;
+            transition: 0.3s;
+        }
+        .sidebar a:hover, .sidebar a.active { 
+            background: #495057; 
+            color: white; 
+        }
+        .sidebar a i { 
+            margin-right: 10px; 
+            font-size: 16px; 
+            width: 20px; 
+            text-align: center; 
+        }
+        .sidebar .menu-title { 
+            padding: 10px 20px 5px 20px; 
+            font-size: 11px; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            color: #6c757d; 
+            font-weight: bold;
+        }
+        .sidebar hr { 
+            border-color: #495057; 
+            margin: 5px 20px; 
+        }
+        
+        /* Styling Konten Utama */
+        .content { 
+            flex-grow: 1; 
+            padding: 20px; 
+            overflow-y: auto; 
+            width: calc(100% - 260px);
+        }
+
+        /* Styling Tabel Agar Rapi */
+        .table th { font-size: 13px; white-space: nowrap; }
+        .table td { font-size: 14px; vertical-align: middle; }
+        
+        /* Styling Card Form */
+        .card { border: none; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body>
+
+    <!-- ================= SIDEBAR MENU ================= -->
+    <div class="sidebar">
+        <!-- Logo / Brand -->
+        
+        <div class="brand text-center">
+            <img src="/media/images/logo.jpeg" class="img-fluid rounded mb-3" style="max-height: 100px; object-fit:cover;">
+            <!-- <i class="bi bi-egg-fried fs-3 text-warning"></i>  -->
+            <div class="fw-bold mt-1" >JAYA MAKMUR</div>
+            <small class="fw-bold mt-4" style="font-size: 10px;">Madureso - Kuwarasan - Kebumen</small>
+        </div>
+
+        <!-- Menu Dashboard -->
+        <a href="{% url 'peternakan:dashboard' %}">
+            <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        
+        <hr>
+        <div class="menu-title">Manajemen Ternak</div>
+        
+        <a href="{% url 'peternakan:sapi_list' %}">
+            <i class="bi bi-heart-pulse"></i> Data Sapi
+        </a>
+        <a href="{% url 'peternakan:pemeliharaan_list' %}">
+            <i class="bi bi-box-seam"></i> Pemeliharaan (Pakan)
+        </a>
+        <a href="{% url 'peternakan:supervisi_list' %}">
+            <i class="bi bi-clipboard2-pulse"></i> Supervisi Medis
+        </a>
+        
+        <hr>
+        <div class="menu-title">Keuangan & Produksi</div>
+        
+        <a href="{% url 'peternakan:panen_list' %}">
+            <i class="bi bi-basket"></i> Panen / Penjualan
+        </a>
+        <a href="{% url 'peternakan:pengeluaran_list' %}">
+            <i class="bi bi-cash-coin"></i> Pengeluaran
+        </a>
+        <a href="{% url 'peternakan:laporan' %}">
+            <i class="bi bi-file-earmark-bar-graph"></i> Laporan Laba Rugi
+        </a>
+        
+        <hr>
+        <div class="menu-title">Master Data</div>
+        
+        <a href="{% url 'peternakan:dokter_list' %}">
+            <i class="bi bi-person-badge"></i> Data Dokter
+        </a>
+    </div>
+
+
+    <!-- ================= KONTEN UTAMA ================= -->
+    <div class="content">
+        
+        <!-- Navbar Atas (Info User & Tombol Logout) -->
+        <div class="d-flex justify-content-between align-items-center mb-4 p-3 bg-white rounded shadow-sm">
+            <h5 class="mb-0 text-secondary fw-bold">
+                <i class="bi bi-speedometer2 me-1"></i> Sistem Informasi Pengelolaan Peternakan
+            </h5>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-dark small fw-semibold">
+                    <i class="bi bi-person-circle fs-4 align-middle"></i> 
+                    {{ user.username|title }}
+                </span>
+                <a href="{% url 'peternakan:logout' %}" class="btn btn-sm btn-outline-danger">
+                    <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
+            </div>
+        </div>
+
+        <!-- Notifikasi Sukses / Error / Warning -->
+        {% if messages %}
+            <div class="mt-2">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show py-2" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Blok Konten Yang Akan Diisi Oleh File Lain (list.html, form.html, dll) -->
+        {% block content %}
+        {% endblock %}
+
+    </div>
+
+    <!-- Script JavaScript Bootstrap 5 (Ditaruh di paling bawah agar loading cepat) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    {% block extra_script %}
+    <!-- Blok untuk script tambahan (misal: tooltip) dari file lain -->
+    {% endblock %}
+
+</body>
+</html>

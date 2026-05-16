@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">Dashboard Peternakan</h2>
+<div class="row mb-4">
+    <div class="col-md-3"><div class="card p-3 bg-primary text-white"><h6>Sapi Sehat</h6><h2>{{ total_sapi }}</h2></div></div>
+    <div class="col-md-3"><div class="card p-3 bg-warning text-dark"><h6>Butuh Perawatan</h6><h2>{{ sapi_sakit }}</h2></div></div>
+    <div class="col-md-3"><div class="card p-3 bg-success text-white"><h6>Pendapatan Bulan Ini</h6><h5>Rp {{ pendapatan|floatformat:0 }}</h5></div></div>
+    <div class="col-md-3"><div class="card p-3 {% if laba > 0 %}bg-info{% else %}bg-danger{% endif %} text-white"><h6>Laba/Rugi Bulan Ini</h6><h5>Rp {{ laba|floatformat:0 }}</h5></div></div>
+</div>
+<div class="row">
+    <div class="col-md-6">
+        <div class="card p-3"><h5>Aksi Cepat</h5>
+            <div class="d-grid gap-2 mt-3">
+                <a href="{% url 'peternakan:sapi_tambah' %}" class="btn btn-outline-primary btn-sm">Tambah Sapi</a>
+                <a href="{% url 'peternakan:pemeliharaan_tambah' %}" class="btn btn-outline-success btn-sm">Input Pakan</a>
+                <a href="{% url 'peternakan:supervisi_tambah' %}" class="btn btn-outline-warning btn-sm">Input Supervisi</a>
+                <a href="{% url 'peternakan:panen_tambah' %}" class="btn btn-outline-info btn-sm">Input Panen/Jual</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

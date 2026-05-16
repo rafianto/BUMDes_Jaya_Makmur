@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4 col-md-6 mt-5 mx-auto shadow">
+    <h4 class="text-danger mb-3"><i class="bi bi-exclamation-triangle"></i> Konfirmasi Hapus</h4>
+    <p>Hapus data panen <strong>{{ object.jenis_produksi }}</strong> senilai <strong class="text-success">Rp {{ object.total_pendapatan|floatformat:0 }}</strong>?</p>
+    <p class="text-muted small">*Catatan: Menghapus data penjualan sapi TIDAK akan mengembalikan status sapi menjadi sehat secara otomatis. Silakan ubah manual di menu Data Sapi jika diperlukan.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Ya, Hapus!</button>
+        <a href="{% url 'peternakan:panen_list' %}" class="btn btn-secondary">Batal</a>
+    </form>
+</div>
+{% endblock %}

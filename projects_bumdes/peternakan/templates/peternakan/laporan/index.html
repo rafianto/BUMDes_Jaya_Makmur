@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">Laporan Laba Rugi</h2>
+<div class="card p-3 mb-4 col-md-8">
+    <form method="get">
+        <div class="row g-2">
+            <div class="col-md-4"><label class="form-label">Dari Tanggal</label>{{ form.tanggal_mulai }}</div>
+            <div class="col-md-4"><label class="form-label">Sampai Tanggal</label>{{ form.tanggal_selesai }}</div>
+            <div class="col-md-4 d-flex align-items-end"><button type="submit" class="btn btn-primary w-100">Tampilkan</button></div>
+        </div>
+    </form>
+</div>
+
+{% if active %}
+<div class="row mb-4">
+    <div class="col-md-4"><div class="card p-3 bg-success text-white text-center"><h6>Total Pendapatan</h6><h4>Rp {{ pendapatan|floatformat:0 }}</h4></div></div>
+    <div class="col-md-4"><div class="card p-3 bg-danger text-white text-center"><h6>Total Pengeluaran</h6><h4>Rp {{ pengeluaran|floatformat:0 }}</h4></div></div>
+    <div class="col-md-4"><div class="card p-3 bg-primary text-white text-center"><h6>LABA / RUGI</h6><h4>Rp {{ laba|floatformat:0 }}</h4></div></div>
+</div>
+<div class="card p-3">
+    <h5>Rincian Pendapatan (Panen/penjualan)</h5>
+    <table class="table table-bordered table-sm">
+        <tr><th>Tanggal</th><th>Jenis</th><th>Total</th></tr>
+        {% for p in list_pendapatan %}
+        <tr><td>{{ p.tanggal }}</td><td>{{ p.jenis_produksi }}</td><td>Rp {{ p.total_pendapatan|floatformat:0 }}</td></tr>
+        {% empty %}<tr><td colspan="3">Tidak ada pendapatan.</td></tr>{% endfor %}
+    </table>
+</div>
+{% endif %}
+{% endblock %}

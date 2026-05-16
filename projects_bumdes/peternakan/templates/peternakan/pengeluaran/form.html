@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">Input Pengeluaran Baru</h2>
+<div class="card p-4 col-md-8">
+    <!-- WAJIB: enctype="multipart/form-data" untuk mengaktifkan upload bukti pembayaran -->
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="row">
+            
+            <!-- Tanggal -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Tanggal Pengeluaran</label>
+                {{ form.tanggal }}
+            </div>
+            
+            <!-- Kategori (Akan otomatis jadi dropdown karena ada choices di Model) -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Kategori</label>
+                {{ form.kategori }}
+            </div>
+            
+            <!-- Deskripsi -->
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold small">Deskripsi Pengeluaran</label>
+                {{ form.deskripsi }}
+            </div>
+            
+            <!-- Jumlah Uang -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Jumlah (Rp)</label>
+                {{ form.jumlah }}
+            </div>
+            
+            <!-- Upload Bukti -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Bukti Pembayaran (Foto/Struk)</label>
+                {{ form.bukti_pembayaran }}
+                <small class="text-muted d-block mt-1">Kosongkan jika tidak ada bukti.</small>
+            </div>
+            
+        </div>
+        
+        <!-- Tombol Aksi -->
+        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Simpan Pengeluaran</button>
+        <a href="{% url 'peternakan:pengeluaran_list' %}" class="btn btn-secondary">Batal</a>
+    </form>
+</div>
+{% endblock %}

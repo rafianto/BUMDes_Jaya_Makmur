@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="card p-4 col-md-6 mt-5 mx-auto shadow">
+    <h4 class="text-danger mb-3"><i class="bi bi-exclamation-triangle"></i> Konfirmasi Hapus</h4>
+    <p>Apakah Anda yakin ingin menghapus data dokter <strong>{{ object.nama }}</strong>?</p>
+    <p class="text-muted small">*Tindakan ini tidak dapat dibatalkan.</p>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Ya, Hapus!</button>
+        <a href="{% url 'peternakan:dokter_list' %}" class="btn btn-secondary">Batal</a>
+    </form>
+</div>
+{% endblock %}

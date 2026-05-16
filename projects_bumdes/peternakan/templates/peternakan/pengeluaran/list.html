@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Data Pengeluaran Operasional</h2>
+    <a href="{% url 'peternakan:pengeluaran_tambah' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tambah Pengeluaran</a>
+</div>
+
+<!-- FORM FILTER -->
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="text" name="search" class="form-control" placeholder="Cari Kategori atau Deskripsi..." value="{{ request.GET.search }}">
+    </div>
+    <div class="col-md-4">
+        <select name="sort_by" class="form-select">
+            <option value="tgl_baru" {% if request.GET.sort_by == 'tgl_baru' or not request.GET.sort_by %}selected{% endif %}>Tanggal Terbaru</option>
+            <option value="tgl_lama" {% if request.GET.sort_by == 'tgl_lama' %}selected{% endif %}>Tanggal Terlama</option>
+            <option value="kategori_az" {% if request.GET.sort_by == 'kategori_az' %}selected{% endif %}>Kategori (A-Z)</option>
+            <option value="jumlah_termahal" {% if request.GET.sort_by == 'jumlah_termahal' %}selected{% endif %}>Jumlah Terbesar</option>
+            <option value="jumlah_termurah" {% if request.GET.sort_by == 'jumlah_termurah' %}selected{% endif %}>Jumlah Terkecil</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-secondary w-100"><i class="bi bi-funnel"></i> Terapkan</button>
+    </div>
+</form>
+
+<!-- TABEL DATA -->
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Kategori</th>
+                    <th>Deskripsi</th>
+                    <th class="text-end">Jumlah (Rp)</th>
+                    <th class="text-center">Bukti</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in data %}
+                <tr>
+                    <td><span class="fw-semibold">{{ p.tanggal|date:"d M Y" }}</span></td>
+                    <td><span class="badge bg-secondary">{{ p.kategori }}</span></td>
+                    <td style="max-width: 250px;">
+                        <span class="text-dark small">{{ p.deskripsi|truncatewords:6 }}...</span>
+                    </td>
+                    <td class="text-end">
+                        <span class="fw-bold text-danger">Rp {{ p.jumlah|floatformat:0 }}</span>
+                    </td>
+                    <td class="text-center">
+                        {% if p.bukti_pembayaran %}
+                            <i class="bi bi-image text-success fs-5" title="Ada bukti"></i>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- KOLOM AKSI: DETAIL & HAPUS -->
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-1">
+                            <!-- TOMBOL DETAIL (Modal Pop-up) -->
+                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalDetailPengeluaran" 
+                                onclick="isiModalPengeluaran(
+                                    '{{ p.tanggal|date:"d F Y" }}',
+                                    '{{ p.kategori }}',
+                                    `{{ p.deskripsi|escapejs }}`,
+                                    'Rp {{ p.jumlah|floatformat:0 }}',
+                                    '{% if p.bukti_pembayaran %}{{ p.bukti_pembayaran.url }}{% else %}{% endif %}'
+                                )" title="Lihat Detail">
+                                <i class="bi bi-eye"></i>
+                            </button>
+
+                            <!-- TOMBOL HAPUS -->
+                            <a href="{% url 'peternakan:pengeluaran_hapus' p.pk %}" class="btn btn-sm btn-outline-danger" title="Hapus Data">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6" class="text-center text-muted py-4"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Tidak ada data pengeluaran.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- PAGINATION -->
+{% if data.paginator.num_pages > 1 %}
+<nav aria-label="Page navigation">
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <small class="text-muted">Halaman <strong>{{ data.number }}</strong> dari <strong>{{ data.paginator.num_pages }}</strong></small>
+        <ul class="pagination pagination-sm mb-0">
+            {% if data.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-double-left"></i></a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ data.previous_page_number }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-left"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-left"></i></span></li>
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+            {% endif %}
+            <li class="page-item active disabled"><span class="page-link">{{ data.number }}</span></li>
+            {% if data.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ data.next_page_number }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-right"></i></a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ data.paginator.num_pages }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-double-right"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-right"></i></span></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+{% endif %}
+
+
+<!-- ========================================== -->
+<!-- MODAL POP-UP DETAIL PENGELUARAN             -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetailPengeluaran" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-cash-coin"></i> Detail Pengeluaran</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">Tanggal Pengeluaran</label>
+                        <h6 id="md_tanggal" class="fw-bold text-primary mb-0"></h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Kategori</label>
+                        <h6 id="md_kategori" class="mb-0"><span class="badge bg-secondary fs-6">-</span></h6>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted small">Deskripsi Lengkap</label>
+                    <div id="md_deskripsi" class="p-2 bg-light border rounded" style="min-height: 50px;"></div>
+                </div>
+
+                <div class="row mb-3 bg-light p-3 rounded border">
+                    <div class="col-12">
+                        <label class="text-muted small">Total Jumlah Pengeluaran</label>
+                        <h3 id="md_jumlah" class="text-danger fw-bold mb-0"></h3>
+                    </div>
+                </div>
+
+                <div class="mb-0">
+                    <label class="text-muted small">Bukti Pembayaran (Struk/Transfer)</label>
+                    <div id="md_bukti_container" class="text-center p-2 border rounded bg-white" style="min-height: 100px; display: none;">
+                        <img id="md_bukti" src="" class="img-fluid rounded" style="max-height: 300px; object-fit: contain;" alt="Bukti Pembayaran">
+                    </div>
+                    <div id="md_no_bukti" class="text-center text-muted p-3">
+                        <i class="bi bi-image fs-1 d-block mb-2"></i>
+                        Tidak ada bukti yang diupload.
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- JAVASCRIPT -->
+{% block extra_script %}
+<script>
+    // FUNGSI MENGISI DATA KE MODAL
+    function isiModalPengeluaran(tanggal, kategori, deskripsi, jumlah, url_bukti) {
+        document.getElementById('md_tanggal').innerText = tanggal;
+        document.getElementById('md_kategori').innerHTML = `<span class="badge bg-secondary fs-6">${kategori}</span>`;
+        document.getElementById('md_deskripsi').innerText = deskripsi;
+        document.getElementById('md_jumlah').innerText = jumlah;
+
+        // Logika menampilkan gambar bukti jika ada
+        if (url_bukti) {
+            document.getElementById('md_bukti').src = url_bukti;
+            document.getElementById('md_bukti_container').style.display = 'block';
+            document.getElementById('md_no_bukti').style.display = 'none';
+        } else {
+            document.getElementById('md_bukti_container').style.display = 'none';
+            document.getElementById('md_no_bukti').style.display = 'block';
+        }
+
+        var myModal = new bootstrap.Modal(document.getElementById('modalDetailPengeluaran'));
+        myModal.show();
+    }
+
+    // FIX: BERSIHKAN MODAL SAAT DITUTUP (Anti Read-Only)
+    var modalEl = document.getElementById('modalDetailPengeluaran');
+    modalEl.addEventListener('hidden.bs.modal', function () {
+        // Kosongkan data
+        document.getElementById('md_tanggal').innerText = '';
+        document.getElementById('md_kategori').innerHTML = '';
+        document.getElementById('md_deskripsi').innerText = '';
+        document.getElementById('md_jumlah').innerText = '';
+        
+        // Reset bukti
+        document.getElementById('md_bukti').src = '';
+        document.getElementById('md_bukti_container').style.display = 'none';
+        document.getElementById('md_no_bukti').style.display = 'block';
+
+        // Hapus backdrop & kembalikan body ke normal
+        document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+    });
+</script>
+{% endblock %}

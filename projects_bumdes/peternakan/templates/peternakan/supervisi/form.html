@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">Input Supervisi & Pemeriksaan Dokter</h2>
+<div class="card p-4 col-md-10">
+    <div class="alert alert-info small">
+        <i class="bi bi-info-circle"></i> <strong>Info Otomatis:</strong> 
+        <br>1. <strong>Status Sapi</strong> akan otomatis berubah sesuai pilihan di bawah.
+        <br>2. Jika <strong>Berat</strong> dan <strong>Tinggi</strong> diisi, maka data fisik sapi di menu "Data Sapi" akan langsung diperbarui.
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Data Utama -->
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold small">Pilih Sapi</label>
+                {{ form.sapi }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold small">Dokter yang Memeriksa</label>
+                {{ form.dokter }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold small">Tanggal</label>
+                {{ form.tanggal }}
+            </div>
+            
+            <!-- Data Fisik Baru -->
+            <div class="col-md-6 mb-3 border-end">
+                <label class="form-label fw-bold small text-primary"><i class="bi bi-speedometer"></i> Berat Sapi Saat Ini (Kg)</label>
+                {{ form.berat_sapi_saat_ini }}
+                <small class="text-muted d-block">Kosongkan jika tidak ditimbang.</small>
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small text-primary"><i class="bi bi-arrows-vertical"></i> Update Tinggi Sapi (Cm)</label>
+                {{ form.update_tinggi_sapi }}
+                <small class="text-muted d-block">Kosongkan jika tidak diukur.</small>
+            </div>
+            
+            <!-- Data Medis -->
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold small">Diagnosa Dokter</label>
+                {{ form.diagnosa }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Tindakan yang Dilakukan / Supervisi</label>
+                {{ form.tindakan }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Resep Obat</label>
+                {{ form.resep_obat }}
+            </div>
+            
+            <!-- Biaya & Status -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Biaya Konsultasi (Rp)</label>
+                {{ form.biaya_konsultasi }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small text-danger">Update Status Sapi Menjadi:</label>
+                {{ form.update_status_sapi }}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Simpan & Update Data</button>
+        <a href="{% url 'peternakan:supervisi_list' %}" class="btn btn-secondary">Batal</a>
+    </form>
+</div>
+{% endblock %}

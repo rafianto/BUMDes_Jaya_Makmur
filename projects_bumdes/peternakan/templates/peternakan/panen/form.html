@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">Input Panen / Penjualan</h2>
+<div class="card p-4 col-md-8">
+    <div class="alert alert-warning small">
+        <i class="bi bi-info-circle"></i> <strong>Penting:</strong> Jika memilih "Penjualan Sapi Dewasa", maka <strong>status sapi akan otomatis berubah menjadi "Dijual"</strong> dan sapi tidak akan muncul di menu pakan/supervisi lagi.
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <!-- Menampilkan error spesifik jika ada validasi gagal (misal jual sapi tapi tidak pilih sapi) -->
+        {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Jenis Produksi</label>
+                {{ form.jenis_produksi }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Pilih Sapi <span class="text-danger">(Wajib jika Jual/Anak Sapi)</span></label>
+                {{ form.sapi }}
+                {% if form.sapi.errors %}
+                    <small class="text-danger">{{ form.sapi.errors.0 }}</small>
+                {% endif %}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold small">Tanggal</label>
+                {{ form.tanggal }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold small">Jumlah</label>
+                {{ form.jumlah }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label fw-bold small">Satuan (Contoh: Liter, Kg)</label>
+                {{ form.satuan }}
+            </div>
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold small">Harga Jual per Satuan (Rp)</label>
+                {{ form.harga_jual }}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Simpan</button>
+        <a href="{% url 'peternakan:panen_list' %}" class="btn btn-secondary">Batal</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,255 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Riwayat Supervisi Medis</h2>
+    <a href="{% url 'peternakan:supervisi_tambah' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Input Supervisi</a>
+</div>
+
+<!-- FORM FILTER -->
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="text" name="search" class="form-control" placeholder="Cari ID Sapi, Nama, Diagnosa, Dokter..." value="{{ request.GET.search }}">
+    </div>
+    <div class="col-md-4">
+        <select name="sort_by" class="form-select">
+            <option value="tgl_baru" {% if request.GET.sort_by == 'tgl_baru' or not request.GET.sort_by %}selected{% endif %}>Tanggal Terbaru</option>
+            <option value="tgl_lama" {% if request.GET.sort_by == 'tgl_lama' %}selected{% endif %}>Tanggal Terlama</option>
+            <option value="sapi_az" {% if request.GET.sort_by == 'sapi_az' %}selected{% endif %}>Nama Sapi (A-Z)</option>
+            <option value="dokter_az" {% if request.GET.sort_by == 'dokter_az' %}selected{% endif %}>Nama Dokter (A-Z)</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-secondary w-100"><i class="bi bi-funnel"></i> Terapkan</button>
+    </div>
+</form>
+
+<!-- TABEL DATA -->
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Sapi</th>
+                    <th>Dokter</th>
+                    <th>Diagnosa</th>
+                    <th class="text-center">Berat</th>
+                    <th class="text-center">Tinggi</th>
+                    <th class="text-end">Biaya</th>
+                    <th>Status</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in data %}
+                <tr>
+                    <td><span class="fw-semibold">{{ s.tanggal|date:"d M Y" }}</span></td>
+                    <td>
+                        <div class="fw-bold text-primary">{{ s.sapi.nama_sapi }}</div>
+                        <small class="text-muted">{{ s.sapi.id_sapi }}</small>
+                    </td>
+                    <td>{{ s.dokter.nama }}</td>
+                    <td style="max-width: 150px;">
+                        <span class="text-dark small">{{ s.diagnosa|truncatewords:4 }}...</span>
+                    </td>
+                    <td class="text-center">
+                        {% if s.berat_sapi_saat_ini %}{{ s.berat_sapi_saat_ini|floatformat:0 }} Kg{% else %}-{% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if s.update_tinggi_sapi %}{{ s.update_tinggi_sapi|floatformat:0 }} Cm{% else %}-{% endif %}
+                    </td>
+                    <td class="text-end">
+                        <span class="fw-bold text-danger">Rp {{ s.biaya_konsultasi|floatformat:0 }}</span>
+                    </td>
+                    <td class="text-center">
+                        {% if s.update_status_sapi == 'Hidup/Sehat' %}<span class="badge bg-success">{{ s.update_status_sapi }}</span>
+                        {% elif s.update_status_sapi == 'Sakit' %}<span class="badge bg-warning text-dark">{{ s.update_status_sapi }}</span>
+                        {% else %}<span class="badge bg-secondary">{{ s.update_status_sapi }}</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- KOLOM AKSI: DITAMBAH TOMBOL DETAIL -->
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-1">
+                            <!-- TOMBOL UNTUK MEMBUKA MODAL DETAIL -->
+                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalDetail" 
+                                onclick="isiModalDetail(
+                                    '{{ s.tanggal|date:"d F Y" }}',
+                                    '{{ s.sapi.nama_sapi }} ({{ s.sapi.id_sapi }})',
+                                    '{{ s.dokter.nama }}',
+                                    `{{ s.diagnosa|escapejs }}`,
+                                    `{{ s.tindakan|escapejs }}`,
+                                    `{{ s.resep_obat|escapejs }}`,
+                                    '{% if s.berat_sapi_saat_ini %}{{ s.berat_sapi_saat_ini|floatformat:0 }} Kg{% else %}-{% endif %}',
+                                    '{% if s.update_tinggi_sapi %}{{ s.update_tinggi_sapi|floatformat:0 }} Cm{% else %}-{% endif %}',
+                                    '{{ s.update_status_sapi }}',
+                                    'Rp {{ s.biaya_konsultasi|floatformat:0 }}'
+                                )" title="Lihat Detail">
+                                <i class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="9" class="text-center text-muted py-4"><i class="bi bi-clipboard2-x fs-1 d-block mb-2"></i>Tidak ada data supervisi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- PAGINATION (Pagination yang sudah benar) -->
+{% if data.paginator.num_pages > 1 %}
+<nav aria-label="Page navigation">
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <small class="text-muted">Halaman <strong>{{ data.number }}</strong> dari <strong>{{ data.paginator.num_pages }}</strong></small>
+        <ul class="pagination pagination-sm mb-0">
+            {% if data.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-double-left"></i></a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ data.previous_page_number }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-left"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-left"></i></span></li>
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+            {% endif %}
+            <li class="page-item active disabled"><span class="page-link">{{ data.number }}</span></li>
+            {% if data.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ data.next_page_number }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-right"></i></a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ data.paginator.num_pages }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-double-right"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-right"></i></span></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+{% endif %}
+
+
+<!-- ========================================== -->
+<!-- MODAL POP-UP UNTUK VIEW DETAIL             -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetail" tabindex="-1" aria-labelledby="modalDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title" id="modalDetailLabel"><i class="bi bi-clipboard2-pulse"></i> Detail Supervisi Medis</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">Tanggal Pemeriksaan</label>
+                        <h6 id="md_tanggal" class="fw-bold text-primary mb-0"></h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Status Sapi Terkini</label>
+                        <h6 id="md_status" class="mb-0"><span class="badge bg-secondary">-</span></h6>
+                    </div>
+                </div>
+                <hr>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6 border-end">
+                        <label class="text-muted small">Sapi</label>
+                        <p id="md_sapi" class="fw-bold mb-0"></p>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Dokter Pemeriksa</label>
+                        <p id="md_dokter" class="fw-bold mb-0"></p>
+                    </div>
+                </div>
+
+                <div class="row mb-3 bg-light p-2 rounded">
+                    <div class="col-md-6 border-end">
+                        <label class="text-muted small">Berat Badan Saat Ini</label>
+                        <h5 id="md_berat" class="mb-0"></h5>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Tinggi Badan Terukur</label>
+                        <h5 id="md_tinggi" class="mb-0"></h5>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted small">Diagnosa</label>
+                    <div id="md_diagnosa" class="p-2 bg-warning bg-opacity-10 border-start border-4 border-warning rounded-end" style="min-height: 60px;"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small">Tindakan</label>
+                    <div id="md_tindakan" class="p-2 border rounded" style="min-height: 40px; background-color: #f8f9fa;"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="text-muted small">Resep Obat</label>
+                    <div id="md_resep" class="p-2 bg-success bg-opacity-10 border-start border-4 border-success rounded-end" style="min-height: 40px;"></div>
+                </div>
+
+                <div class="d-flex justify-content-end border-top pt-3 mt-3">
+                    <h5 class="text-danger mb-0">Biaya Konsultasi: <span id="md_biaya" class="fw-bold"></span></h5>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- JAVASCRIPT UNTUK MENGISI DATA KE MODAL -->
+{% block extra_script %}
+<script>
+    // FUNGSI UNTUK MENAMPILKAN DATA KE MODAL
+    function isiModalDetail(tanggal, sapi, dokter, diagnosa, tindakan, resep, berat, tinggi, status, biaya) {
+        document.getElementById('md_tanggal').innerText = tanggal;
+        document.getElementById('md_sapi').innerText = sapi;
+        document.getElementById('md_dokter').innerText = dokter;
+        document.getElementById('md_diagnosa').innerText = diagnosa;
+        document.getElementById('md_tindakan').innerText = tindakan;
+        document.getElementById('md_resep').innerText = resep;
+        document.getElementById('md_berat').innerText = berat;
+        document.getElementById('md_tinggi').innerText = tinggi;
+        document.getElementById('md_biaya').innerText = biaya;
+        
+        let statusEl = document.getElementById('md_status');
+        statusEl.innerHTML = `<span class="badge bg-${status === 'Hidup/Sehat' ? 'success' : status === 'Sakit' ? 'warning text-dark' : 'secondary'}">${status}</span>`;
+        
+        var myModal = new bootstrap.Modal(document.getElementById('modalDetail'));
+        myModal.show();
+    }
+
+    // ==========================================
+    // FIX: BERSIHKAN MODAL SAAT DITUTUP
+    // Agar halaman di belakang tidak error / read-only
+    // ==========================================
+    var modalEl = document.getElementById('modalDetail');
+    
+    // Event ini dipanggil setiap kali modal benar-benar sudah tertutup
+    modalEl.addEventListener('hidden.bs.modal', function () {
+        // 1. Kosongkan kembali semua teks di dalam modal (Opsional, agar saat buka data lain tidak numpuk)
+        document.getElementById('md_tanggal').innerText = '';
+        document.getElementById('md_sapi').innerText = '';
+        document.getElementById('md_dokter').innerText = '';
+        document.getElementById('md_diagnosa').innerText = '';
+        document.getElementById('md_tindakan').innerText = '';
+        document.getElementById('md_resep').innerText = '';
+        document.getElementById('md_berat').innerText = '-';
+        document.getElementById('md_tinggi').innerText = '-';
+        document.getElementById('md_biaya').innerText = '';
+        document.getElementById('md_status').innerHTML = '';
+
+        // 2. HAPUS PAKSA backdrop (latar abu-abu) jika masih nyangkut di HTML
+        document.querySelectorAll('.modal-backdrop').forEach(function(el) {
+            el.remove();
+        });
+
+        // 3. Kembalikan class body ke kondisi normal (bisa scroll & klik)
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+    });
+</script>
+{% endblock %}

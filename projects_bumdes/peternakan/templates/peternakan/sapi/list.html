@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Data Sapi Ternak</h2>
+    <a href="{% url 'peternakan:sapi_tambah' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tambah Sapi Baru</a>
+</div>
+
+<!-- Form Filter -->
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="text" name="search" class="form-control" placeholder="Cari ID/Nama..." value="{{ request.GET.search }}">
+    </div>
+    <div class="col-md-4">
+        <select name="status" class="form-select">
+            <option value="">Semua Status</option>
+            <option value="Hidup/Sehat" {% if request.GET.status == 'Hidup/Sehat' %}selected{% endif %}>Hidup/Sehat</option>
+            <option value="Sakit" {% if request.GET.status == 'Sakit' %}selected{% endif %}>Sakit</option>
+            <option value="Dijual" {% if request.GET.status == 'Dijual' %}selected{% endif %}>Dijual</option>
+            <option value="Mati" {% if request.GET.status == 'Mati' %}selected{% endif %}>Mati</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-secondary w-100"><i class="bi bi-funnel"></i> Filter</button>
+    </div>
+</form>
+
+<!-- Tabel Data -->
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>ID Sapi</th>
+                    <th>Nama</th>
+                    <th>Rumpun</th>
+                    <th>Jenis Kelamin</th>
+                    <th>Berat (Kg)</th>
+                    <th>Tinggi (Cm)</th>
+                    <th>Status</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in data %}
+                <tr>
+                    <td><span class="fw-bold text-primary">{{ s.id_sapi }}</span></td>
+                    <td><a href="{% url 'peternakan:sapi_detail' s.pk %}" class="text-decoration-none fw-semibold">{{ s.nama_sapi }}</a></td>
+                    
+                    <!-- Rumpun -->
+                    <td><span class="badge bg-dark">{{ s.rumpun }}</span></td>
+                    
+                    <!-- Jenis Kelamin -->
+                    <td>
+                        {% if s.jenis_kelamin == 'Jantan' %}
+                            <span class="badge bg-info text-dark"><i class="bi bi-gender-male"></i> Jantan</span>
+                        {% else %}
+                            <span class="badge bg-pink text-dark" style="background-color: #ff85a2;"><i class="bi bi-gender-female"></i> Betina</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Berat -->
+                    <td class="fw-bold">{{ s.berat_badan|floatformat:0 }}</td>
+                    
+                    <!-- Tinggi -->
+                    <td>
+                        {% if s.tinggi_sapi %}
+                            {{ s.tinggi_sapi|floatformat:0 }} cm
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Status -->
+                    <td>
+                        {% if s.status == 'Hidup/Sehat' %}<span class="badge bg-success">{{ s.status }}</span>
+                        {% elif s.status == 'Sakit' %}<span class="badge bg-warning text-dark">{{ s.status }}</span>
+                        {% elif s.status == 'Dijual' %}<span class="badge bg-secondary">{{ s.status }}</span>
+                        {% else %}<span class="badge bg-danger">{{ s.status }}</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Aksi -->
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-1">
+                            <a href="{% url 'peternakan:sapi_detail' s.pk %}" class="btn btn-sm btn-outline-info" title="Detail"><i class="bi bi-eye"></i></a>
+                            <a href="{% url 'peternakan:sapi_edit' s.pk %}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'peternakan:sapi_hapus' s.pk %}" class="btn btn-sm btn-outline-danger" title="Hapus"><i class="bi bi-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="8" class="text-center text-muted py-4"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Tidak ada data sapi.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

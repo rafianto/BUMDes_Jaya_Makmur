@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BUMDes Jaya Makmur{endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        body { display: flex; min-height: 100vh; margin: 0; }
+        .sidebar { width: 260px; background: #343a40; color: white; padding-top: 20px; flex-shrink: 0; }
+        .sidebar a { color: #adb5bd; text-decoration: none; display: block; padding: 10px 20px; font-size: 14px;}
+        .sidebar a:hover, .sidebar a.active { background: #495057; color: white; }
+        .content { flex-grow: 1; padding: 20px; background: #f8f9fa; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h5 class="text-center mb-4"><i class="bi bi-egg-fried"></i> BUMDes Jaya Makmur</h5>
+        <a href="{% url 'peternakan:dashboard' %}"><i class="bi bi-speedometer2"></i> Dashboard</a>
+        <hr style="border-color: #495057; margin: 10px 20px;">
+        <small class="px-3 text-uppercase fw-bold text-secondary">Manajemen Ternak</small>
+        <a href="{% url 'peternakan:sapi_list' %}"><i class="bi bi-heart-pulse"></i> Data Sapi</a>
+        <a href="{% url 'peternakan:pemeliharaan_list' %}"><i class="bi bi-box-seam"></i> Pemeliharaan</a>
+        <a href="{% url 'peternakan:supervisi_list' %}"><i class="bi bi-clipboard2-pulse"></i> Supervisi Medis</a>
+        <hr style="border-color: #495057; margin: 10px 20px;">
+        <small class="px-3 text-uppercase fw-bold text-secondary">Keuangan & Produksi</small>
+        <a href="{% url 'peternakan:panen_list' %}"><i class="bi bi-basket"></i> Panen / Penjualan</a>
+        <a href="{% url 'peternakan:pengeluaran_list' %}"><i class="bi bi-cash-coin"></i> Pengeluaran</a>
+        <a href="{% url 'peternakan:laporan' %}"><i class="bi bi-file-earmark-bar-graph"></i> Laporan Laba Rugi</a>
+        <hr style="border-color: #495057; margin: 10px 20px;">
+        <a href="{% url 'peternakan:dokter_list' %}"><i class="bi bi-person-badge"></i> Data Dokter</a>
+    </div>
+
+    <div class="content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

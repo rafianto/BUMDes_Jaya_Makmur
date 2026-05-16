@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="mb-4">{% if form.instance.pk %}Edit Data Dokter{% else %}Tambah Dokter Baru{% endif %}</h2>
+<div class="card p-4 col-md-8">
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <!-- Mengatur lebar kolom sesuai jenis input -->
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Nama Lengkap</label>
+                {{ form.nama }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">No. Telepon</label>
+                {{ form.no_telepon }}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label class="form-label fw-bold small">Spesialisasi</label>
+                {{ form.spesialisasi }}
+            </div>
+            <div class="col-md-12 mb-3">
+                <label class="form-label fw-bold small">Alamat</label>
+                {{ form.alamat }}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i> Simpan</button>
+        <a href="{% url 'peternakan:dokter_list' %}" class="btn btn-secondary">Batal</a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Riwayat Pemeliharaan (Pakan)</h2>
+    <div class="d-flex gap-2">
+        <!-- TOMBOL DOWNLOAD EXCEL BARU -->
+        <a href="{% url 'peternakan:pemeliharaan_export_excel' %}?search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}" class="btn btn-success">
+            <i class="bi bi-file-earmark-excel"></i> Download Excel
+        </a>
+        <a href="{% url 'peternakan:pemeliharaan_tambah' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Input Pakan
+        </a>
+    </div>
+</div>
+
+<!-- FORM FILTER: SEARCH & SORT BY (Mirip Sapi) -->
+<form method="get" class="row g-2 mb-3">
+    <!-- Kolom Search -->
+    <div class="col-md-5">
+        <input type="text" name="search" class="form-control" placeholder="Cari ID Sapi, Nama, atau Pakan..." value="{{ request.GET.search }}">
+    </div>
+    
+    <!-- Kolom Sort By -->
+    <div class="col-md-4">
+        <select name="sort_by" class="form-select">
+            <option value="tgl_baru" {% if request.GET.sort_by == 'tgl_baru' or not request.GET.sort_by %}selected{% endif %}>Tanggal Terbaru</option>
+            <option value="tgl_lama" {% if request.GET.sort_by == 'tgl_lama' %}selected{% endif %}>Tanggal Terlama</option>
+            <option value="sapi_az" {% if request.GET.sort_by == 'sapi_az' %}selected{% endif %}>Nama Sapi (A-Z)</option>
+            <option value="sapi_za" {% if request.GET.sort_by == 'sapi_za' %}selected{% endif %}>Nama Sapi (Z-A)</option>
+        </select>
+    </div>
+    
+    <!-- Tombol Filter -->
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-secondary w-100"><i class="bi bi-funnel"></i> Terapkan</button>
+    </div>
+</form>
+
+<!-- TABEL DATA -->
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Sapi</th>
+                    <th>Jenis Pakan / Pemeliharaan</th>
+                    <th class="text-center">Jumlah</th>
+                    <th class="text-end">Biaya</th>
+                    <th>Keterangan</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in data %}
+                <tr>
+                    <!-- Tanggal -->
+                    <td>
+                        <span class="fw-semibold">{{ p.tanggal|date:"d M Y" }}</span>
+                    </td>
+                    
+                    <!-- Info Sapi -->
+                    <td>
+                        <div class="fw-bold text-primary">{{ p.sapi.nama_sapi }}</div>
+                        <small class="text-muted">{{ p.sapi.id_sapi }}</small>
+                    </td>
+                    
+                    <!-- Jenis Pakan -->
+                    <td>
+                        <span class="badge bg-success">{{ p.jenis_pakan }}</span>
+                    </td>
+                    
+                    <!-- Jumlah -->
+                    <td class="text-center">
+                        {{ p.jumlah_pakan|floatformat:0 }} Kg
+                    </td>
+                    
+                    <!-- Biaya -->
+                    <td class="text-end">
+                        <span class="fw-bold text-danger">Rp {{ p.biaya_pakan|floatformat:0 }}</span>
+                    </td>
+                    
+                    <!-- Keterangan (Tooltip) -->
+                    <td style="max-width: 200px;">
+                        {% if p.keterangan %}
+                            <span class="text-muted small" data-bs-toggle="tooltip" data-bs-placement="top" title="{{ p.keterangan }}">
+                                {{ p.keterangan|truncatewords:5 }}{% if p.keterangan|wordcount > 5 %}...{% endif %}
+                            </span>
+                        {% else %}
+                            <span class="text-muted fst-italic small">-</span>
+                        {% endif %}
+                    </td>
+                    
+                    <!-- Aksi -->
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-1">
+                            <a href="{% url 'peternakan:pemeliharaan_edit' p.pk %}" class="btn btn-sm btn-outline-warning" title="Edit"><i class="bi bi-pencil"></i></a>
+                            <a href="{% url 'peternakan:pemeliharaan_hapus' p.pk %}" class="btn btn-sm btn-outline-danger" title="Hapus"><i class="bi bi-trash"></i></a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        Tidak ada data pemeliharaan ditemukan.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Pagination (Jika data lebih dari 10) -->
+<nav aria-label="Page navigation">
+    <ul class="pagination justify-content-center mt-3">
+        {% if data.has_previous %}
+            <li class="page-item">
+                <!-- Menjaga parameter search dan sort saat pindah halaman -->
+                <a class="page-link" href="?page=1&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}">Awal</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ data.previous_page_number }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}">&laquo;</a>
+            </li>
+        {% endif %}
+
+        <li class="page-item active disabled"><span class="page-link">Hal {{ data.number }} dari {{ data.paginator.num_pages }}</span></li>
+
+        {% if data.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ data.next_page_number }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}">&raquo;</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ data.paginator.num_pages }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}">Akhir</a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+
+<!-- Script Tooltip -->
+{% block extra_script %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

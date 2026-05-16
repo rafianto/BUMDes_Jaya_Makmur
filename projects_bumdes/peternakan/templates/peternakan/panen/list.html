@@ -1,0 +1,210 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Data Panen & Penjualan</h2>
+    <a href="{% url 'peternakan:panen_tambah' %}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Tambah Panen/Jual</a>
+</div>
+
+<!-- FORM FILTER -->
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-5">
+        <input type="text" name="search" class="form-control" placeholder="Cari Jenis Produksi atau Nama Sapi..." value="{{ request.GET.search }}">
+    </div>
+    <div class="col-md-4">
+        <select name="sort_by" class="form-select">
+            <option value="tgl_baru" {% if request.GET.sort_by == 'tgl_baru' or not request.GET.sort_by %}selected{% endif %}>Tanggal Terbaru</option>
+            <option value="tgl_lama" {% if request.GET.sort_by == 'tgl_lama' %}selected{% endif %}>Tanggal Terlama</option>
+            <option value="jenis_az" {% if request.GET.sort_by == 'jenis_az' %}selected{% endif %}>Jenis Produksi (A-Z)</option>
+            <option value="pendapatan_terbesar" {% if request.GET.sort_by == 'pendapatan_terbesar' %}selected{% endif %}>Jumlah Terbesar</option>
+        </select>
+    </div>
+    <div class="col-md-3">
+        <button type="submit" class="btn btn-secondary w-100"><i class="bi bi-funnel"></i> Terapkan</button>
+    </div>
+</form>
+
+<!-- INFO TOTAL PENDAPATAN -->
+<div class="card p-3 mb-3 border-start border-4 border-success">
+    <h6 class="text-muted mb-0">Total Pendapatan (Halaman ini):</h6>
+    <h3 class="text-success fw-bold mb-0">Rp {{ total_pendapatan|floatformat:0 }}</h3>
+</div>
+
+<!-- TABEL DATA -->
+<div class="card p-3">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Tanggal</th>
+                    <th>Jenis Produksi</th>
+                    <th>Terhubung ke Sapi</th>
+                    <th class="text-center">Jumlah</th>
+                    <th class="text-end">Harga/Satuan</th>
+                    <th class="text-end">Total Pendapatan</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in data %}
+                <tr>
+                    <td><span class="fw-semibold">{{ p.tanggal|date:"d M Y" }}</span></td>
+                    <td><span class="badge bg-success">{{ p.jenis_produksi }}</span></td>
+                    <td>
+                        {% if p.sapi %}
+                            <div class="fw-bold text-primary">{{ p.sapi.nama_sapi }}</div>
+                            <small class="text-muted">{{ p.sapi.id_sapi }}</small>
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">{{ p.jumlah }} {{ p.satuan }}</td>
+                    <td class="text-end">Rp {{ p.harga_jual|floatformat:0 }}</td>
+                    <td class="text-end">
+                        <span class="fw-bold text-success">Rp {{ p.total_pendapatan|floatformat:0 }}</span>
+                    </td>
+                    
+                    <!-- KOLOM AKSI: DETAIL & HAPUS -->
+                    <td class="text-center">
+                        <div class="d-flex justify-content-center gap-1">
+                            <!-- TOMBOL DETAIL (Modal Pop-up) -->
+                            <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalDetailPanen" 
+                                onclick="isiModalPanen(
+                                    '{{ p.tanggal|date:"d F Y" }}',
+                                    '{{ p.jenis_produksi }}',
+                                    '{% if p.sapi %}{{ p.sapi.nama_sapi }} ({{ p.sapi.id_sapi }}){% else %}-{% endif %}',
+                                    '{{ p.jumlah }} {{ p.satuan }}',
+                                    'Rp {{ p.harga_jual|floatformat:0 }}',
+                                    'Rp {{ p.total_pendapatan|floatformat:0 }}'
+                                )" title="Lihat Detail">
+                                <i class="bi bi-eye"></i>
+                            </button>
+
+                            <!-- TOMBOL HAPUS -->
+                            <a href="{% url 'peternakan:panen_hapus' p.pk %}" class="btn btn-sm btn-outline-danger" title="Hapus Data">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center text-muted py-4"><i class="bi bi-inbox fs-1 d-block mb-2"></i>Tidak ada data panen/penjualan.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- PAGINATION -->
+{% if data.paginator.num_pages > 1 %}
+<nav aria-label="Page navigation">
+    <div class="d-flex justify-content-between align-items-center mt-3">
+        <small class="text-muted">Halaman <strong>{{ data.number }}</strong> dari <strong>{{ data.paginator.num_pages }}</strong></small>
+        <ul class="pagination pagination-sm mb-0">
+            {% if data.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page=1&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-double-left"></i></a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ data.previous_page_number }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-left"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-left"></i></span></li>
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-left"></i></span></li>
+            {% endif %}
+            <li class="page-item active disabled"><span class="page-link">{{ data.number }}</span></li>
+            {% if data.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ data.next_page_number }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-right"></i></a></li>
+                <li class="page-item"><a class="page-link" href="?page={{ data.paginator.num_pages }}&search={{ request.GET.search }}&sort_by={{ request.GET.sort_by }}"><i class="bi bi-chevron-double-right"></i></a></li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-right"></i></span></li>
+                <li class="page-item disabled"><span class="page-link"><i class="bi bi-chevron-double-right"></i></span></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+{% endif %}
+
+
+<!-- ========================================== -->
+<!-- MODAL POP-UP DETAIL PANEN & PENJUALAN     -->
+<!-- ========================================== -->
+<div class="modal fade" id="modalDetailPanen" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="bi bi-basket"></i> Detail Panen / Penjualan</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="text-muted small">Tanggal</label>
+                        <h6 id="md_tanggal" class="fw-bold text-primary mb-0"></h6>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="text-muted small">Jenis Produksi</label>
+                        <h6 id="md_jenis" class="mb-0"><span class="badge bg-success fs-6">-</span></h6>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="text-muted small">Terhubung ke Sapi</label>
+                    <p id="md_sapi" class="fw-bold mb-0"></p>
+                </div>
+
+                <div class="row mb-3 bg-light p-3 rounded border">
+                    <div class="col-md-4 text-center border-end">
+                        <label class="text-muted small d-block">Jumlah Hasil</label>
+                        <h5 id="md_jumlah" class="text-dark mb-0"></h5>
+                    </div>
+                    <div class="col-md-4 text-center border-end">
+                        <label class="text-muted small d-block">Harga Jual / Satuan</label>
+                        <h5 id="md_harga" class="text-dark mb-0"></h5>
+                    </div>
+                    <div class="col-md-4 text-center bg-success bg-opacity-10 rounded">
+                        <label class="text-muted small d-block">Total Pendapatan</label>
+                        <h5 id="md_total" class="text-success fw-bold mb-0"></h5>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+<!-- JAVASCRIPT -->
+{% block extra_script %}
+<script>
+    // FUNGSI MENGISI DATA KE MODAL
+    function isiModalPanen(tanggal, jenis, sapi, jumlah, harga, total) {
+        document.getElementById('md_tanggal').innerText = tanggal;
+        document.getElementById('md_jenis').innerHTML = `<span class="badge bg-success fs-6">${jenis}</span>`;
+        document.getElementById('md_sapi').innerText = sapi;
+        document.getElementById('md_jumlah').innerText = jumlah;
+        document.getElementById('md_harga').innerText = harga;
+        document.getElementById('md_total').innerText = total;
+
+        var myModal = new bootstrap.Modal(document.getElementById('modalDetailPanen'));
+        myModal.show();
+    }
+
+    // FIX: BERSIHKAN MODAL SAAT DITUTUP (Anti Read-Only)
+    var modalEl = document.getElementById('modalDetailPanen');
+    modalEl.addEventListener('hidden.bs.modal', function () {
+        // Kosongkan data
+        document.getElementById('md_tanggal').innerText = '';
+        document.getElementById('md_jenis').innerHTML = '';
+        document.getElementById('md_sapi').innerText = '-';
+        document.getElementById('md_jumlah').innerText = '';
+        document.getElementById('md_harga').innerText = '';
+        document.getElementById('md_total').innerText = '';
+
+        // Hapus backdrop & kembalikan body ke normal
+        document.querySelectorAll('.modal-backdrop').forEach(function(el) { el.remove(); });
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+    });
+</script>
+{% endblock %}
